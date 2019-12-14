@@ -4,7 +4,7 @@ fun main() {
     val input = ::main.javaClass.getResourceAsStream("input.txt").bufferedReader().readLine()
 
     val initialState = State(
-        input = 1,
+        input = 5,
         memory = input.split(",").map(Integer::parseInt).toMutableList(),
         pc = 0
     )
