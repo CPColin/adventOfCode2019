@@ -14,8 +14,7 @@ class IntCodeTests {
     @Test
     fun `operand - immediate`() {
         val intcode = Intcode(
-            input = 123,
-            memory = mutableListOf(10, 20, 30, 40, 50, 60),
+            memory = "10,20,30,40,50,60",
             pc = 0
         )
 
@@ -25,8 +24,7 @@ class IntCodeTests {
     @Test
     fun `operand - position`() {
         val intcode = Intcode(
-            input = 123,
-            memory = mutableListOf(10, 20, 30, 4, 50, 60),
+            memory = "10,20,30,4,50,60",
             pc = 0
         )
 
@@ -51,8 +49,7 @@ class IntCodeTests {
     @Test
     fun peek() {
         val intcode = Intcode(
-            input = 123,
-            memory = mutableListOf(10, 20, 30, 40, 50, 60),
+            memory = "10,20,30,40,50,60",
             pc = 0
         )
 
@@ -206,7 +203,7 @@ class IntCodeTests {
     fun run(input: Int, memory: String, expectedMemory: String?, expectedOutput: Int?) {
         val start = Intcode(
             input = input,
-            memory = memory.split(",").map(Integer::parseInt).toMutableList(),
+            memory = memory,
             pc = 0
         )
         val end = start.run().last()
@@ -244,7 +241,7 @@ class IntCodeTests {
     fun tick(memory: String, pc: Int, expected: String?) {
         val start = Intcode(
             input = 0,
-            memory = memory.split(",").map(Integer::parseInt).toMutableList(),
+            memory = memory,
             pc = pc
         )
         val end = start.tick()

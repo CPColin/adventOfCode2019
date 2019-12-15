@@ -3,7 +3,7 @@ package day07
 import day04.Day04
 
 class Intcode(
-    val input: Int,
+    val inputs: MutableList<Int>,
 
     val memory: MutableList<Int>,
 
@@ -11,6 +11,30 @@ class Intcode(
 
     var pc: Int
 ) {
+    constructor(
+        inputs: List<Int>,
+        memory: String,
+        output: Int = 5432, // useless by default so we don't rely on it being zero
+        pc: Int
+    ) : this(
+        inputs = inputs.toMutableList(),
+        memory = memory.split(",").map(Integer::parseInt).toMutableList(),
+        output = output,
+        pc = pc
+    )
+
+    constructor(
+        input: Int = 9876, // useless by default so we don't rely on it being zero
+        memory: String,
+        output: Int = 5432, // useless by default so we don't rely on it being zero
+        pc: Int
+    ) : this(
+        inputs = mutableListOf(input),
+        memory = memory.split(",").map(Integer::parseInt).toMutableList(),
+        output = output,
+        pc = pc
+    )
+
     enum class ParameterMode {
         POSITION,
         IMMEDIATE
@@ -51,7 +75,7 @@ class Intcode(
                 advancePc(4)
             }
             3 -> { // input
-                poke(peek(pc + 1), input)
+                poke(peek(pc + 1), inputs.removeAt(0))
                 advancePc(2)
             }
             4 -> { // output
