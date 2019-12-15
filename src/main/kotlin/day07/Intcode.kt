@@ -7,14 +7,14 @@ class Intcode(
 
     val memory: MutableList<Int>,
 
-    var output: Int = 0,
+    var output: Int? = null,
 
     var pc: Int
 ) {
     constructor(
         inputs: List<Int>,
         memory: String,
-        output: Int = 5432, // useless by default so we don't rely on it being zero
+        output: Int? = null,
         pc: Int
     ) : this(
         inputs = inputs.toMutableList(),
@@ -24,9 +24,9 @@ class Intcode(
     )
 
     constructor(
-        input: Int = 9876, // useless by default so we don't rely on it being zero
+        input: Int = 0,
         memory: String,
-        output: Int = 5432, // useless by default so we don't rely on it being zero
+        output: Int? = null,
         pc: Int
     ) : this(
         inputs = mutableListOf(input),
@@ -56,7 +56,17 @@ class Intcode(
         memory[address] = value
     }
 
-    fun run() = generateSequence(this) { tick() }
+    fun runUntilHalt() = generateSequence(this) { tick() }.last()
+
+    fun runUntilOutput(): Intcode? {
+        var intcode: Intcode?
+
+        do {
+            intcode = tick()
+        } while (intcode != null && intcode.output == null)
+
+        return intcode
+    }
 
     fun tick(): Intcode? {
         val operation = peek(pc)

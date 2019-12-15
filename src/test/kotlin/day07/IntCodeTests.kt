@@ -1,12 +1,12 @@
 package day07
 
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import util.ParameterizedTestClass
 import util.TestParameters
 import java.util.stream.Stream
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @ParameterizedTestClass
@@ -57,7 +57,7 @@ class IntCodeTests {
     }
 
     @TestParameters
-    private fun runParameters() = Stream.of(
+    private fun runUntilHaltParameters() = Stream.of(
         Arguments.of(
             0,
             "1,9,10,3,2,3,11,0,99,30,40,50",
@@ -199,22 +199,35 @@ class IntCodeTests {
     )
 
     @ParameterizedTest
-    @MethodSource("runParameters")
-    fun run(input: Int, memory: String, expectedMemory: String?, expectedOutput: Int?) {
-        val start = Intcode(
+    @MethodSource("runUntilHaltParameters")
+    fun runUntilHalt(input: Int, memory: String, expectedMemory: String?, expectedOutput: Int?) {
+        val intcode = Intcode(
             input = input,
             memory = memory,
             pc = 0
         )
-        val end = start.run().last()
+
+        intcode.runUntilHalt()
 
         if (expectedMemory != null) {
-            assertEquals(expectedMemory, end.memory.joinToString(separator = ",") { it.toString() })
+            assertEquals(expectedMemory, intcode.memory.joinToString(separator = ",") { it.toString() })
         }
 
         if (expectedOutput != null) {
-            assertEquals(expectedOutput, end.output)
+            assertEquals(expectedOutput, intcode.output)
         }
+    }
+
+    @Test
+    fun runUntilOutput() {
+        val intcode = Intcode(
+            memory = "104,1,104,2,99",
+            pc = 0
+        )
+
+        assertEquals(1, intcode.runUntilOutput()?.output)
+        assertEquals(2, intcode.runUntilOutput()?.output)
+        assertEquals(null, intcode.runUntilOutput()?.output)
     }
 
     @TestParameters

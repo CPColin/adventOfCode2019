@@ -8,11 +8,11 @@ class Day07 {
                     inputs = listOf(phase, accumulator),
                     memory = memory,
                     pc = 0
-                ).run().last().output
+                ).runUntilHalt().output!!
             }
 
-        fun maximumPhases(memory: String): Pair<List<Int>, Int> =
-            permutations((0..4).toList()).map { phases -> phases to amplify(memory, phases) }.maxBy { it.second }!!
+        fun maximum(memory: String, phasePool: IntRange): Pair<List<Int>, Int> =
+            permutations(phasePool.toList()).map { phases -> phases to amplify(memory, phases) }.maxBy { it.second }!!
 
         fun <T> permutations(of: List<T>): List<List<T>> {
             return if (of.size == 1) {
@@ -26,7 +26,6 @@ class Day07 {
 
 fun main() {
     val input = ::main.javaClass.getResourceAsStream("input.txt").bufferedReader().readLine()
-    val maximumSignal = Day07.maximumPhases(input).second
 
-    println(maximumSignal)
+    println("Maximum without feedback: ${Day07.maximum(input, 0..4).second}")
 }
