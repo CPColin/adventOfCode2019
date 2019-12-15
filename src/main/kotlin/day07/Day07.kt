@@ -8,7 +8,7 @@ class Day07 {
                     inputs = listOf(phase, accumulator),
                     memory = memory,
                     pc = 0
-                ).runUntilHalt().output!!
+                ).apply { runUntilOutput() }.output!!
             }
 
         fun maximum(memory: String, phasePool: IntRange): Pair<List<Int>, Int> =

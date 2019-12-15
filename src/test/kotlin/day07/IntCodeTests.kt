@@ -8,6 +8,7 @@ import util.TestParameters
 import java.util.stream.Stream
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @ParameterizedTestClass
 class IntCodeTests {
@@ -221,13 +222,19 @@ class IntCodeTests {
     @Test
     fun runUntilOutput() {
         val intcode = Intcode(
-            memory = "104,1,104,2,99",
+            memory = "104,1,1,0,0,0,104,2,99",
             pc = 0
         )
 
-        assertEquals(1, intcode.runUntilOutput()?.output)
-        assertEquals(2, intcode.runUntilOutput()?.output)
-        assertEquals(null, intcode.runUntilOutput()?.output)
+        intcode.runUntilOutput()
+        assertEquals(1, intcode.output)
+
+        intcode.runUntilOutput()
+        assertEquals(2, intcode.output)
+
+        intcode.runUntilOutput()
+        assertEquals(null, intcode.output)
+        assertTrue(intcode.halted)
     }
 
     @TestParameters
@@ -241,27 +248,21 @@ class IntCodeTests {
             "1,9,10,70,2,3,11,0,99,30,40,50",
             4,
             "3500,9,10,70,2,3,11,0,99,30,40,50"
-        ),
-        Arguments.of(
-            "3500,9,10,70,2,3,11,0,99,30,40,50",
-            8,
-            null
         )
     )
 
     @ParameterizedTest
     @MethodSource("tickParameters")
-    fun tick(memory: String, pc: Int, expected: String?) {
-        val start = Intcode(
+    fun tick(memory: String, pc: Int, expected: String) {
+        val intcode = Intcode(
             input = 0,
             memory = memory,
             pc = pc
         )
-        val end = start.tick()
 
-        assertEquals(expected, end?.memory?.joinToString(separator = ",") { it.toString() })
-        if (expected != null) {
-            assertEquals(pc + 4, end?.pc)
-        }
+        intcode.tick()
+
+        assertEquals(expected, intcode.memory.joinToString(separator = ",") { it.toString() })
+        assertEquals(pc + 4, intcode.pc)
     }
 }

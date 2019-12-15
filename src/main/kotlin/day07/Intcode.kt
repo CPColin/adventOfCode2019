@@ -3,6 +3,8 @@ package day07
 import day04.Day04
 
 class Intcode(
+    var halted: Boolean = false,
+
     val inputs: MutableList<Int>,
 
     val memory: MutableList<Int>,
@@ -56,26 +58,28 @@ class Intcode(
         memory[address] = value
     }
 
-    fun runUntilHalt() = generateSequence(this) { tick() }.last()
-
-    fun runUntilOutput(): Intcode? {
-        var intcode: Intcode?
-
+    fun runUntilHalt() {
         do {
-            intcode = tick()
-        } while (intcode != null && intcode.output == null)
-
-        return intcode
+            tick()
+        } while (!halted)
     }
 
-    fun tick(): Intcode? {
+    fun runUntilOutput() {
+        output = null
+
+        do {
+            tick()
+        } while (!halted && output == null)
+    }
+
+    fun tick() {
         val operation = peek(pc)
         val opcode = operation % 100
         val parameterModes = parameterModes(operation)
 
         fun parameterMode(operand: Int) = parameterModes[operand] ?: ParameterMode.POSITION
 
-        return when (opcode) {
+        when (opcode) {
             1 -> { // add
                 poke(peek(pc + 3), operand(pc + 1, parameterMode(0)) + operand(pc + 2, parameterMode(1)))
                 advancePc(4)
@@ -95,7 +99,6 @@ class Intcode(
             5 -> { // jump if true
                 if (operand(pc + 1, parameterMode(0)) != 0) {
                     pc = operand(pc + 2, parameterMode(1))
-                    this
                 } else {
                     advancePc(3)
                 }
@@ -103,7 +106,6 @@ class Intcode(
             6 -> { // jump if false
                 if (operand(pc + 1, parameterMode(0)) == 0) {
                     pc = operand(pc + 2, parameterMode(1))
-                    this
                 } else {
                     advancePc(3)
                 }
@@ -116,7 +118,9 @@ class Intcode(
                 poke(peek(pc + 3), if (operand(pc + 1, parameterMode(0)) == operand(pc + 2, parameterMode(1))) 1 else 0)
                 advancePc(4)
             }
-            99 -> null
+            99 -> {
+                halted = true
+            }
             else -> throw IllegalArgumentException("Unknown opcode: $opcode")
         }
     }
