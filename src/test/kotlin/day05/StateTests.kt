@@ -12,7 +12,7 @@ class StateTests {
             pc = 0
         )
 
-        assertEquals(40, state.operand(3, ParameterMode.IMMEDIDATE))
+        assertEquals(40, state.operand(3, ParameterMode.IMMEDIATE))
     }
 
     @Test

@@ -15,7 +15,7 @@ class State(
 
     fun operand(address: Int, parameterMode: ParameterMode) =
         when (parameterMode) {
-            ParameterMode.IMMEDIDATE -> peek(address)
+            ParameterMode.IMMEDIATE -> peek(address)
             ParameterMode.POSITION -> peek(peek(address))
         }
 

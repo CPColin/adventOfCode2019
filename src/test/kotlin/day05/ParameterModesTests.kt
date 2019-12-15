@@ -14,9 +14,9 @@ class ParameterModesTests {
     private fun parameterModesParameters() = Stream.of(
         Arguments.of("1", emptyMap<Int, ParameterMode>()),
         Arguments.of("01", emptyMap<Int, ParameterMode>()),
-        Arguments.of("101", mapOf(0 to ParameterMode.IMMEDIDATE)),
-        Arguments.of("1001", mapOf(0 to ParameterMode.POSITION, 1 to ParameterMode.IMMEDIDATE)),
-        Arguments.of("1101", mapOf(0 to ParameterMode.IMMEDIDATE, 1 to ParameterMode.IMMEDIDATE))
+        Arguments.of("101", mapOf(0 to ParameterMode.IMMEDIATE)),
+        Arguments.of("1001", mapOf(0 to ParameterMode.POSITION, 1 to ParameterMode.IMMEDIATE)),
+        Arguments.of("1101", mapOf(0 to ParameterMode.IMMEDIATE, 1 to ParameterMode.IMMEDIATE))
     )
 
     @ParameterizedTest
