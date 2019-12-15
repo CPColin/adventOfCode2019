@@ -2,14 +2,36 @@ package day07
 
 class Day07 {
     companion object {
-        fun amplify(memory: String, phases: List<Int>): Int =
-            phases.fold(0) { accumulator, phase ->
+        fun amplify(memory: String, phases: List<Int>): Int {
+            val amplifiers = phases.map { phase ->
                 Intcode(
-                    inputs = listOf(phase, accumulator),
+                    inputs = listOf(phase),
                     memory = memory,
                     pc = 0
-                ).apply { runUntilOutput() }.output!!
+                )
             }
+            var index = 0
+            var signal = 0
+
+            while (true) {
+                val amplifier = amplifiers[index]
+
+                if (amplifier.halted) {
+                    return signal
+                }
+
+                amplifier.inputs.add(signal)
+                amplifier.runUntilOutput()
+
+                if (amplifier.output == null) {
+                    return signal
+                }
+
+                signal = amplifier.output!!
+
+                index = (index + 1) % amplifiers.size
+            }
+        }
 
         fun maximum(memory: String, phasePool: IntRange): Pair<List<Int>, Int> =
             permutations(phasePool.toList()).map { phases -> phases to amplify(memory, phases) }.maxBy { it.second }!!
@@ -28,4 +50,5 @@ fun main() {
     val input = ::main.javaClass.getResourceAsStream("input.txt").bufferedReader().readLine()
 
     println("Maximum without feedback: ${Day07.maximum(input, 0..4).second}")
+    println("Maximum with feedback: ${Day07.maximum(input, 5..9).second}")
 }
