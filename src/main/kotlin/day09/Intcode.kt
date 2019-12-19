@@ -5,56 +5,70 @@ class Intcode(
 
     val inputs: MutableList<Long>,
 
-    val memory: MutableList<Long>,
+    val memory: MutableMap<Long, Long>,
 
     var output: Long? = null,
 
-    var pc: Long
+    var pc: Long,
+
+    var relativeBase: Long
 ) {
     constructor(
         inputs: List<Long>,
         memory: String,
         output: Long? = null,
-        pc: Long = 0
+        pc: Long = 0,
+        relativeBase: Long = 0
     ) : this(
         inputs = inputs.toMutableList(),
-        memory = memory.split(",").map(java.lang.Long::parseLong).toMutableList(),
+        memory = memory.split(",").mapIndexed { address, value ->
+            address.toLong() to java.lang.Long.parseLong(value)
+        }.toMap().toMutableMap(),
         output = output,
-        pc = pc
+        pc = pc,
+        relativeBase = relativeBase
     )
 
     constructor(
         input: Long = 0,
         memory: String,
         output: Long? = null,
-        pc: Long = 0
+        pc: Long = 0,
+        relativeBase: Long = 0
     ) : this(
         inputs = mutableListOf(input),
-        memory = memory.split(",").map(java.lang.Long::parseLong).toMutableList(),
+        memory = memory.split(",").mapIndexed { address, value ->
+            address.toLong() to java.lang.Long.parseLong(value)
+        }.toMap().toMutableMap(),
         output = output,
-        pc = pc
+        pc = pc,
+        relativeBase = relativeBase
     )
 
     enum class ParameterMode {
         POSITION,
-        IMMEDIATE
+        IMMEDIATE,
+        RELATIVE
     }
 
     fun advancePc(amount: Int) = apply {
         pc += amount
     }
 
-    fun operand(address: Long, parameterMode: ParameterMode) =
+    fun peek(address: Long) = memory[address] ?: 0
+
+    fun peek(operandAddress: Long, parameterMode: ParameterMode) =
         when (parameterMode) {
-            ParameterMode.IMMEDIATE -> peek(address)
-            ParameterMode.POSITION -> peek(peek(address))
-        }
+            ParameterMode.POSITION -> peek(operandAddress)
+            ParameterMode.IMMEDIATE -> operandAddress
+            ParameterMode.RELATIVE -> peek(operandAddress) + relativeBase
+        }.let { address -> peek(address) }
 
-    fun peek(address: Long) = memory[address.toInt()]
-
-    fun poke(address: Long, value: Long) = apply {
-        memory[address.toInt()] = value
-    }
+    fun poke(operandAddress: Long, parameterMode: ParameterMode, value: Long) =
+        when (parameterMode) {
+            ParameterMode.POSITION, ParameterMode.IMMEDIATE -> peek(operandAddress)
+            ParameterMode.RELATIVE -> peek(operandAddress) + relativeBase
+        }.let { address -> memory[address] = value }
 
     fun runUntilHalt() {
         do {
@@ -75,46 +89,71 @@ class Intcode(
         val opcode = operation % 100
         val parameterModes = parameterModes(operation)
 
-        fun parameterMode(operand: Int) = parameterModes[operand] ?: ParameterMode.POSITION
+        fun parameterMode(operand: Int) = parameterModes[operand - 1] ?: ParameterMode.POSITION
+        fun operand(operand: Int) = peek(pc + operand, parameterMode(operand))
 
         when (opcode.toInt()) {
             1 -> { // add
-                poke(peek(pc + 3), operand(pc + 1, parameterMode(0)) + operand(pc + 2, parameterMode(1)))
+                poke(
+                    operandAddress = pc + 3,
+                    parameterMode = parameterMode(3),
+                    value = operand(1) + operand(2)
+                )
                 advancePc(4)
             }
             2 -> { // multiply
-                poke(peek(pc + 3), operand(pc + 1, parameterMode(0)) * operand(pc + 2, parameterMode(1)))
+                poke(
+                    operandAddress = pc + 3,
+                    parameterMode = parameterMode(3),
+                    value = operand(1) * operand(2)
+                )
                 advancePc(4)
             }
             3 -> { // input
-                poke(peek(pc + 1), inputs.removeAt(0))
+                poke(
+                    operandAddress = pc + 1,
+                    parameterMode = parameterMode(1),
+                    value = inputs.removeAt(0)
+                )
                 advancePc(2)
             }
             4 -> { // output
-                output = operand(pc + 1, parameterMode(0))
+                output = operand(1)
                 advancePc(2)
             }
             5 -> { // jump if true
-                if (operand(pc + 1, parameterMode(0)) != 0L) {
-                    pc = operand(pc + 2, parameterMode(1))
+                if (operand(1) != 0L) {
+                    pc = operand(2)
                 } else {
                     advancePc(3)
                 }
             }
             6 -> { // jump if false
-                if (operand(pc + 1, parameterMode(0)) == 0L) {
-                    pc = operand(pc + 2, parameterMode(1))
+                if (operand(1) == 0L) {
+                    pc = operand(2)
                 } else {
                     advancePc(3)
                 }
             }
             7 -> { // less than
-                poke(peek(pc + 3), if (operand(pc + 1, parameterMode(0)) < operand(pc + 2, parameterMode(1))) 1 else 0)
+                poke(
+                    operandAddress = pc + 3,
+                    parameterMode = parameterMode(3),
+                    value = if (operand(1) < operand(2)) 1 else 0
+                )
                 advancePc(4)
             }
             8 -> { // equals
-                poke(peek(pc + 3), if (operand(pc + 1, parameterMode(0)) == operand(pc + 2, parameterMode(1))) 1 else 0)
+                poke(
+                    operandAddress = pc + 3,
+                    parameterMode = parameterMode(3),
+                    value = if (operand(1) == operand(2)) 1 else 0
+                )
                 advancePc(4)
+            }
+            9 -> { // relative base offset
+                relativeBase += operand(1)
+                advancePc(2)
             }
             99 -> {
                 halted = true

@@ -12,6 +12,13 @@ import kotlin.test.assertTrue
 
 @ParameterizedTestClass
 class IntCodeTests {
+    private fun memoryString(memory: Map<Long, Long>): String {
+        val maxAddress = memory.keys.max() ?: 0
+
+        return (0..maxAddress).map { memory.getOrDefault(it, 0) }
+            .joinToString(separator = ",")
+    }
+
     @TestParameters
     private fun digitsParameters() = Stream.of(
         Arguments.of(7, listOf(7)),
@@ -25,23 +32,33 @@ class IntCodeTests {
         assertEquals(expected, Intcode.digits(value))
     }
 
-    @Test
-    fun `operand - immediate`() {
-        val intcode = Intcode(
-            memory = "10,20,30,40,50,60"
-        )
-
-        assertEquals(40, intcode.operand(3, Intcode.ParameterMode.IMMEDIATE))
-    }
-
-    @Test
-    fun `operand - position`() {
-        val intcode = Intcode(
-            memory = "10,20,30,4,50,60"
-        )
-
-        assertEquals(50, intcode.operand(3, Intcode.ParameterMode.POSITION))
-    }
+//    @Test
+//    fun `operand - immediate`() {
+//        val intcode = Intcode(
+//            memory = "10,20,30,40,50,60"
+//        )
+//
+//        assertEquals(40, intcode.operand(3, Intcode.ParameterMode.IMMEDIATE))
+//    }
+//
+//    @Test
+//    fun `operand - position`() {
+//        val intcode = Intcode(
+//            memory = "10,20,30,4,50,60"
+//        )
+//
+//        assertEquals(50, intcode.operand(3, Intcode.ParameterMode.POSITION))
+//    }
+//
+//    @Test
+//    fun `operand - relative`() {
+//        val intcode = Intcode(
+//            memory = "10,20,30,4,50,60",
+//            relativeBase = -2
+//        )
+//
+//        assertEquals(30, intcode.operand(3, Intcode.ParameterMode.RELATIVE))
+//    }
 
     @TestParameters
     private fun parameterModesParameters() = Stream.of(
@@ -49,7 +66,8 @@ class IntCodeTests {
         Arguments.of("01", emptyMap<Int, Intcode.ParameterMode>()),
         Arguments.of("101", mapOf(0 to Intcode.ParameterMode.IMMEDIATE)),
         Arguments.of("1001", mapOf(0 to Intcode.ParameterMode.POSITION, 1 to Intcode.ParameterMode.IMMEDIATE)),
-        Arguments.of("1101", mapOf(0 to Intcode.ParameterMode.IMMEDIATE, 1 to Intcode.ParameterMode.IMMEDIATE))
+        Arguments.of("1101", mapOf(0 to Intcode.ParameterMode.IMMEDIATE, 1 to Intcode.ParameterMode.IMMEDIATE)),
+        Arguments.of("1201", mapOf(0 to Intcode.ParameterMode.RELATIVE, 1 to Intcode.ParameterMode.IMMEDIATE))
     )
 
     @ParameterizedTest
@@ -220,7 +238,7 @@ class IntCodeTests {
         intcode.runUntilHalt()
 
         if (expectedMemory != null) {
-            assertEquals(expectedMemory, intcode.memory.joinToString(separator = ",") { it.toString() })
+            assertEquals(expectedMemory, memoryString(intcode.memory))
         }
 
         if (expectedOutput != null) {
@@ -232,7 +250,7 @@ class IntCodeTests {
     private fun runUntilOutputParameters() = Stream.of(
         Arguments.of(
             "104,1,1,0,0,0,104,2,99",
-            listOf(1, 2)
+            listOf(1L, 2L) // Weird type ambiguity happens if Int values are used here.
         ),
         Arguments.of(
             "1102,34915192,34915192,7,4,7,99,0",
@@ -241,6 +259,10 @@ class IntCodeTests {
         Arguments.of(
             "104,1125899906842624,99",
             listOf(1125899906842624)
+        ),
+        Arguments.of(
+            "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99",
+            listOf(109L, 1L, 204L, -1L, 1001L, 100L, 1L, 100L, 1008L, 100L, 16L, 101L, 1006L, 101L, 0L, 99L)
         )
     )
 
@@ -251,13 +273,12 @@ class IntCodeTests {
             memory = memory
         )
 
-        expectedOutput.forEach {
+        val output = generateSequence {
             intcode.runUntilOutput()
-            assertEquals(it, intcode.output)
-        }
+            intcode.output
+        }.toList()
 
-        intcode.runUntilOutput()
-        assertEquals(null, intcode.output)
+        assertEquals(expectedOutput, output)
         assertTrue(intcode.halted)
     }
 
@@ -286,7 +307,7 @@ class IntCodeTests {
 
         intcode.tick()
 
-        assertEquals(expected, intcode.memory.joinToString(separator = ",") { it.toString() })
+        assertEquals(expected, memoryString(intcode.memory))
         assertEquals(pc + 4, intcode.pc)
     }
 }
