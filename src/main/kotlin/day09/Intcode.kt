@@ -15,7 +15,7 @@ class Intcode(
         inputs: List<Long>,
         memory: String,
         output: Long? = null,
-        pc: Long
+        pc: Long = 0
     ) : this(
         inputs = inputs.toMutableList(),
         memory = memory.split(",").map(java.lang.Long::parseLong).toMutableList(),
@@ -24,10 +24,10 @@ class Intcode(
     )
 
     constructor(
-        input: Long = 0L,
+        input: Long = 0,
         memory: String,
         output: Long? = null,
-        pc: Long
+        pc: Long = 0
     ) : this(
         inputs = mutableListOf(input),
         memory = memory.split(",").map(java.lang.Long::parseLong).toMutableList(),

@@ -28,8 +28,7 @@ class IntCodeTests {
     @Test
     fun `operand - immediate`() {
         val intcode = Intcode(
-            memory = "10,20,30,40,50,60",
-            pc = 0
+            memory = "10,20,30,40,50,60"
         )
 
         assertEquals(40, intcode.operand(3, Intcode.ParameterMode.IMMEDIATE))
@@ -38,8 +37,7 @@ class IntCodeTests {
     @Test
     fun `operand - position`() {
         val intcode = Intcode(
-            memory = "10,20,30,4,50,60",
-            pc = 0
+            memory = "10,20,30,4,50,60"
         )
 
         assertEquals(50, intcode.operand(3, Intcode.ParameterMode.POSITION))
@@ -63,8 +61,7 @@ class IntCodeTests {
     @Test
     fun peek() {
         val intcode = Intcode(
-            memory = "10,20,30,40,50,60",
-            pc = 0
+            memory = "10,20,30,40,50,60"
         )
 
         assertEquals(30, intcode.peek(2))
@@ -217,8 +214,7 @@ class IntCodeTests {
     fun runUntilHalt(input: Int, memory: String, expectedMemory: String?, expectedOutput: Int?) {
         val intcode = Intcode(
             input = input.toLong(),
-            memory = memory,
-            pc = 0
+            memory = memory
         )
 
         intcode.runUntilHalt()
@@ -252,8 +248,7 @@ class IntCodeTests {
     @MethodSource("runUntilOutputParameters")
     fun runUntilOutput(memory: String, expectedOutput: List<Long>) {
         val intcode = Intcode(
-            memory = memory,
-            pc = 0
+            memory = memory
         )
 
         expectedOutput.forEach {
