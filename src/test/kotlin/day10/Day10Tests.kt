@@ -7,6 +7,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import util.ParameterizedTestClass
 import util.TestParameters
 import java.util.stream.Stream
+import kotlin.math.PI
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -181,6 +182,47 @@ class Day10Tests {
 
         assertEquals(expected, Day10.pathToEdge(grid, from, step))
     }
+
+    @TestParameters
+    private fun stepAngleParameters() = Stream.of(
+        Arguments.of(0, 1, PI / 2),
+        Arguments.of(1, 0, 0),
+        Arguments.of(-1, 0, PI),
+        Arguments.of(0, -1, -PI / 2)
+    )
+
+    @ParameterizedTest
+    @MethodSource("stepAngleParameters")
+    fun stepAngle(x: Int, y: Int, expected: Double) {
+        assertEquals(expected, Step(x, y).angle())
+    }
+
+    @Test
+    fun sortByStepAngle() {
+        val from = Point(1, 1)
+        val points = setOf(
+            Point(0, 0),
+            Point(1, 0),
+            Point(2, 0),
+            Point(0, 1),
+            Point(2, 1),
+            Point(0, 2),
+            Point(1, 2),
+            Point(2, 2)
+        )
+        val expected = listOf(
+            Point(1, 0),
+            Point(2, 0),
+            Point(2, 1),
+            Point(2, 2),
+            Point(1, 2),
+            Point(0, 2),
+            Point(0, 1),
+            Point(0, 0)
+        )
+
+        assertEquals(expected, Day10.sortByStepAngle(from, points))
+    }
     
     @ParameterizedTest
     private fun visibleParameters() = Stream.of(
@@ -208,6 +250,90 @@ class Day10Tests {
         """.trimIndent()
         val grid = Day10.grid(input)
 
-        assertEquals(expected, Day10.visible(grid, Point(fromX, fromY)))
+        assertEquals(expected, Day10.visible(grid, Point(fromX, fromY)).size)
+    }
+
+    @Test
+    fun zap() {
+        val input = """
+            .#....#####...#..
+            ##...##.#####..##
+            ##...#...#.#####.
+            ..#.....X...###..
+            ..#.#.....#....##
+        """.trimIndent()
+        val grid = Day10.grid(input)
+        val from = Point(8, 3)
+        val expected = listOf(
+            Point(8, 1),
+            Point(9, 0),
+            Point(9, 1),
+            Point(10, 0),
+            Point(9, 2),
+            Point(11, 1),
+            Point(12, 1),
+            Point(11, 2),
+            Point(15, 1),
+            Point(12, 2),
+            Point(13, 2),
+            Point(14, 2),
+            Point(15, 2),
+            Point(12, 3),
+            Point(16, 4),
+            Point(15, 4),
+            Point(10, 4),
+            Point(4, 4),
+            Point(2, 4),
+            Point(2, 3),
+            Point(0, 2),
+            Point(1, 2),
+            Point(0, 1),
+            Point(1, 1),
+            Point(5, 2),
+            Point(1, 0),
+            Point(5, 1),
+            Point(6, 1),
+            Point(6, 0),
+            Point(7, 0),
+            Point(8, 0),
+            Point(10, 1),
+            Point(14, 0),
+            Point(16, 1),
+            Point(13, 3),
+            Point(14, 3)
+        )
+
+        assertEquals(expected, Day10.zap(grid, from))
+    }
+
+    @Test
+    fun `zap - 200th`() {
+        val input = """
+            .#..##.###...#######
+            ##.############..##.
+            .#.######.########.#
+            .###.#######.####.#.
+            #####.##.#.##.###.##
+            ..#####..#.#########
+            ####################
+            #.####....###.#.#.##
+            ##.#################
+            #####.##.###..####..
+            ..######..##.#######
+            ####.##.####...##..#
+            .#####..#.######.###
+            ##...#.##########...
+            #.##########.#######
+            .####.#.###.###.#.##
+            ....##.##.###..#####
+            .#.#.###########.###
+            #.#.#.#####.####.###
+            ###.##.####.##.#..##
+        """.trimIndent()
+        val grid = Day10.grid(input)
+        val best = Day10.best(grid).first
+        val zapped = Day10.zap(grid, best)
+
+        assertEquals(Point(8, 2), zapped[199])
     }
 }

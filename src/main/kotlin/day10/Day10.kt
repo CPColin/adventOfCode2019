@@ -1,6 +1,8 @@
 package day10
 
+import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.sign
 
 class Day10 {
@@ -13,13 +15,15 @@ class Day10 {
     }
 
     data class Step(val x: Int, val y: Int) {
+        fun angle() = atan2(y.toDouble(), x.toDouble())
+
         operator fun div(divisor: Int) = Step(x / divisor, y / divisor)
     }
 
     companion object {
         fun best(grid: Grid) =
             grid.points
-                .map { it to visible(grid, it) }
+                .map { it to visible(grid, it).size }
                 .maxBy { it.second }!!
 
         tailrec fun gcd(a: Int, b: Int): Int =
@@ -54,6 +58,16 @@ class Day10 {
             }
         }
 
+        fun sortByStepAngle(from: Point, points: Set<Point>) =
+            points.sortedBy { to ->
+                (to - from).angle().let {
+                    if (it < -PI / 2)
+                        it + 2 * PI
+                    else
+                        it
+                }
+            }
+
         fun pathToEdge(grid: Grid, from: Point, step: Step) =
             generateSequence(from) {
                 (it + step).let { to ->
@@ -64,7 +78,7 @@ class Day10 {
                 }
             }.drop(1).toSet()
 
-        fun visible(grid: Grid, from: Point): Int {
+        fun visible(grid: Grid, from: Point): Set<Point> {
             val exceptFrom = grid.points - from
             val visible = exceptFrom.toMutableSet()
 
@@ -74,7 +88,21 @@ class Day10 {
                 visible.removeAll(pathToEdge(grid, to, step))
             }
 
-            return visible.size
+            return visible
+        }
+
+        fun zap(grid: Grid, from: Point): List<Point> {
+            val points = (grid.points - from).toMutableSet()
+            val zapped = mutableListOf<Point>()
+
+            while (points.isNotEmpty()) {
+                val visible = visible(grid.copy(points = points), from)
+
+                zapped.addAll(sortByStepAngle(from, visible))
+                points.removeAll(visible)
+            }
+
+            return zapped
         }
     }
 }
@@ -82,6 +110,11 @@ class Day10 {
 fun main() {
     val input = ::main.javaClass.getResourceAsStream("input.txt").bufferedReader().readText()
     val grid = Day10.grid(input)
+    val best = Day10.best(grid)
 
-    println("Best: ${Day10.best(grid)}")
+    println("Best: $best")
+
+    val zapped = Day10.zap(grid, best.first)
+
+    println("200th: ${zapped[199]}")
 }
