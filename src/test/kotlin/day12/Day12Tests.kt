@@ -13,6 +13,37 @@ import kotlin.test.assertEquals
 @ParameterizedTestClass
 class Day12Tests {
     @TestParameters
+    private fun gcdParameters() = Stream.of(
+        Arguments.of(1, 2, 1),
+        Arguments.of(2, 4, 2),
+        Arguments.of(3, 12, 3),
+        Arguments.of(12, 15, 3),
+        Arguments.of(100, 40, 20)
+    )
+
+    @ParameterizedTest
+    @MethodSource("gcdParameters")
+    fun gcd(a: Long, b: Long, expected: Long) {
+        assertEquals(expected, System.gcd(a, b))
+    }
+
+    @TestParameters
+    private fun lcmParameters() = Stream.of(
+        Arguments.of(listOf(7), 7),
+        Arguments.of(listOf(2, 7), 14),
+        Arguments.of(listOf(1, 2, 3), 6),
+        Arguments.of(listOf(2, 3, 4), 12),
+        Arguments.of(listOf(3, 4, 5), 60),
+        Arguments.of(listOf(1, 2, 4), 4)
+    )
+
+    @ParameterizedTest
+    @MethodSource("lcmParameters")
+    fun lcm(values: List<Long>, expected: Long) {
+        assertEquals(expected, System.lcm(*values.toLongArray()))
+    }
+
+    @TestParameters
     private fun moonApplyGravityParameters() = Stream.of(
         Arguments.of(
             Moon(Position(1, 2, 3), Velocity(5, 5, 5)),
@@ -110,12 +141,21 @@ class Day12Tests {
                 Moon(Position(3, 5, -1))
             ),
             2772
+        ),
+        Arguments.of(
+            listOf(
+                Moon(Position(-8, -10, 0)),
+                Moon(Position(5, 5, 10)),
+                Moon(Position(2, -7, 3)),
+                Moon(Position(9, -8, -3))
+            ),
+            4686774924
         )
     )
 
     @ParameterizedTest
     @MethodSource("systemFindRepeatParameters")
-    fun systemFindRepeat(moons: List<Moon>, expected: Int) {
+    fun systemFindRepeat(moons: List<Moon>, expected: Long) {
         val system = System(moons)
 
         assertEquals(expected, system.findRepeat())

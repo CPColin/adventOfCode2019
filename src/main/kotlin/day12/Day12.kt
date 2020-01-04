@@ -22,6 +22,12 @@ data class Moon(val position: Position, val velocity: Velocity = Velocity(0, 0, 
 
     fun applyVelocity() = copy(position = position + velocity)
 
+    fun equalsX(other: Moon) = position.x == other.position.x && velocity.x == other.velocity.x
+
+    fun equalsY(other: Moon) = position.y == other.position.y && velocity.y == other.velocity.y
+
+    fun equalsZ(other: Moon) = position.z == other.position.z && velocity.z == other.velocity.z
+
     val kineticEnergy = abs(velocity.x) + abs(velocity.y) + abs(velocity.z)
 
     val potentialEnergy = abs(position.x) + abs(position.y) + abs(position.z)
@@ -34,7 +40,19 @@ data class Moon(val position: Position, val velocity: Velocity = Velocity(0, 0, 
 }
 
 data class System(val moons: List<Moon>) {
-    fun findRepeat() = ticks.indexOfFirst { this == it } + 1
+    private fun equalsX(other: System) = moons.zip(other.moons).all { (moon1, moon2) -> moon1.equalsX(moon2) }
+
+    private fun equalsY(other: System) = moons.zip(other.moons).all { (moon1, moon2) -> moon1.equalsY(moon2) }
+
+    private fun equalsZ(other: System) = moons.zip(other.moons).all { (moon1, moon2) -> moon1.equalsZ(moon2) }
+
+    fun findRepeat() = lcm(findRepeatX(), findRepeatY(), findRepeatZ())
+
+    private fun findRepeatX() = ticks.indexOfFirst { equalsX(it) } + 1L
+
+    private fun findRepeatY() = ticks.indexOfFirst { equalsY(it) } + 1L
+
+    private fun findRepeatZ() = ticks.indexOfFirst { equalsZ(it) } + 1L
 
     fun tick() = copy(
         moons = moons.map { it.applyGravity(moons - it) }.map { it.applyVelocity() }
@@ -45,6 +63,26 @@ data class System(val moons: List<Moon>) {
     private val ticks = generateSequence(this, System::tick).drop(1)
 
     val totalEnergy = moons.map(Moon::totalEnergy).sum()
+
+    companion object {
+        tailrec fun gcd(a: Long, b: Long): Long =
+            if (b == 0L) {
+                a
+            } else {
+                gcd(b, a % b)
+            }
+
+        fun lcm(vararg values: Long): Long =
+            when (values.size) {
+                1 -> values[0]
+                else -> {
+                    val first = values[0]
+                    val second = lcm(*values.drop(1).toLongArray())
+
+                    first * second / gcd(first, second)
+                }
+            }
+    }
 }
 
 fun main() {
