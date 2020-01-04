@@ -1,9 +1,5 @@
 package day12
 
-import day12.Day12.Moon
-import day12.Day12.Position
-import day12.Day12.System
-import day12.Day12.Velocity
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
